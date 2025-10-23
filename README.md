@@ -82,11 +82,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 
 
-**Made with ❤️ and lots of ☕**
 
-*Experience the future of code analysis with this stunning futuristic interface!*
-=======
-# CodeExplainer
-Web app for AI-powered code analysis
->>>>>>> 753e2095a81fdf50957404ec38cdafebd1be43a6
+
 
