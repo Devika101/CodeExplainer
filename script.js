@@ -34,6 +34,9 @@ class CodeExplainerApp {
         // Theme toggle
         this.themeToggle = document.getElementById('themeToggle');
         this.currentTheme = localStorage.getItem('theme') || 'dark';
+        
+        // API key button
+        this.apiKeyBtn = document.getElementById('apiKeyBtn');
     }
 
     bindEvents() {
@@ -68,6 +71,11 @@ class CodeExplainerApp {
         
         // Theme toggle
         this.themeToggle.addEventListener('click', () => this.toggleTheme());
+        
+        // API key modal open
+        if (this.apiKeyBtn) {
+            this.apiKeyBtn.addEventListener('click', () => this.showApiKeyModal(true));
+        }
     }
 
     setupAnimations() {
@@ -229,6 +237,12 @@ class CodeExplainerApp {
             });
 
             if (!response.ok) {
+                if (response.status === 401 || response.status === 403) {
+                    // invalid/unauthorized key -> clear and prompt again
+                    localStorage.removeItem('openrouter_api_key');
+                    this.showNotification('Invalid API key. Please enter a valid key.', 'error');
+                    this.showApiKeyModal(true);
+                }
                 throw new Error(`API Error: ${response.status}`);
             }
 
@@ -266,7 +280,8 @@ class CodeExplainerApp {
         };
     }
 
-    showApiKeyModal() {
+    showApiKeyModal(allowManage = false) {
+        const existingKey = localStorage.getItem('openrouter_api_key') || '';
         const modal = document.createElement('div');
         modal.className = 'api-key-modal';
         modal.innerHTML = `
@@ -277,9 +292,10 @@ class CodeExplainerApp {
                 </div>
                 <div class="modal-body">
                     <p>To use real AI analysis, please enter your OpenRouter API key:</p>
-                    <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" />
+                    <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" value="${existingKey}" />
                     <div class="modal-actions">
                         <button class="btn-secondary" id="cancelBtn">Cancel</button>
+                        <button class="btn-secondary" id="removeKeyBtn" style="display:${allowManage && existingKey ? 'inline-block' : 'none'}">Remove Key</button>
                         <button class="btn-primary" id="saveBtn">Save & Continue</button>
                     </div>
                     <p class="help-text">
@@ -383,10 +399,23 @@ class CodeExplainerApp {
             if (apiKey) {
                 localStorage.setItem('openrouter_api_key', apiKey);
                 this.showNotification('API key saved successfully!', 'success');
+            } else {
+                localStorage.removeItem('openrouter_api_key');
+                this.showNotification('API key removed.', 'warning');
             }
             document.body.removeChild(modal);
             document.head.removeChild(style);
         });
+        
+        const removeBtn = document.getElementById('removeKeyBtn');
+        if (removeBtn) {
+            removeBtn.addEventListener('click', () => {
+                localStorage.removeItem('openrouter_api_key');
+                this.showNotification('API key removed.', 'warning');
+                document.body.removeChild(modal);
+                document.head.removeChild(style);
+            });
+        }
         
         document.getElementById('cancelBtn').addEventListener('click', () => {
             document.body.removeChild(modal);
