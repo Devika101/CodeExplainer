@@ -293,10 +293,12 @@ class CodeExplainerApp {
                 <div class="modal-body">
                     <p>To use real AI analysis, please enter your OpenRouter API key:</p>
                     <input type="password" id="apiKeyInput" placeholder="Enter your OpenRouter API key" value="${existingKey}" />
+                    <div id="validationMessage" class="validation-message" style="display: none;"></div>
                     <div class="modal-actions">
                         <button class="btn-secondary" id="cancelBtn">Cancel</button>
                         <button class="btn-secondary" id="removeKeyBtn" style="display:${allowManage && existingKey ? 'inline-block' : 'none'}">Remove Key</button>
                         <button class="btn-primary" id="saveBtn">Save & Continue</button>
+                        <button class="btn-secondary" id="testBtn" style="display: none;">Test Key</button>
                     </div>
                     <p class="help-text">
                         <a href="https://openrouter.ai/keys" target="_blank">Get your API key here</a>
@@ -360,6 +362,28 @@ class CodeExplainerApp {
                 color: var(--text-primary);
                 margin: 16px 0;
             }
+            .validation-message {
+                padding: 8px 12px;
+                border-radius: 6px;
+                margin: 8px 0;
+                font-size: 14px;
+                font-weight: 500;
+            }
+            .validation-message.success {
+                background: rgba(0, 255, 136, 0.1);
+                color: var(--success-color);
+                border: 1px solid var(--success-color);
+            }
+            .validation-message.error {
+                background: rgba(255, 68, 68, 0.1);
+                color: var(--error-color);
+                border: 1px solid var(--error-color);
+            }
+            .validation-message.loading {
+                background: rgba(0, 255, 255, 0.1);
+                color: var(--accent-color);
+                border: 1px solid var(--accent-color);
+            }
             .modal-actions {
                 display: flex;
                 gap: 12px;
@@ -372,10 +396,15 @@ class CodeExplainerApp {
                 border-radius: 8px;
                 cursor: pointer;
                 font-weight: 500;
+                transition: var(--transition);
             }
             .btn-primary {
                 background: var(--gradient-primary);
                 color: var(--primary-bg);
+            }
+            .btn-primary:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
             }
             .btn-secondary {
                 background: var(--secondary-bg);
@@ -393,18 +422,83 @@ class CodeExplainerApp {
         `;
         document.head.appendChild(style);
         
-        // Event handlers
-        document.getElementById('saveBtn').addEventListener('click', () => {
-            const apiKey = document.getElementById('apiKeyInput').value.trim();
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveBtn = document.getElementById('saveBtn');
+        const testBtn = document.getElementById('testBtn');
+        const validationMessage = document.getElementById('validationMessage');
+        
+        apiKeyInput.addEventListener('input', () => {
+            const hasValue = apiKeyInput.value.trim().length > 0;
+            testBtn.style.display = hasValue ? 'inline-block' : 'none';
+            validationMessage.style.display = 'none';
+        });
+        
+        testBtn.addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim();
+            if (!apiKey) return;
+            
+            testBtn.disabled = true;
+            testBtn.textContent = 'Testing...';
+            validationMessage.style.display = 'block';
+            validationMessage.className = 'validation-message loading';
+            validationMessage.textContent = 'Validating API key...';
+            
+            try {
+                const isValid = await this.validateApiKey(apiKey);
+                if (isValid) {
+                    validationMessage.className = 'validation-message success';
+                    validationMessage.textContent = '✓ Valid API key! You can now save it.';
+                    saveBtn.disabled = false;
+                } else {
+                    validationMessage.className = 'validation-message error';
+                    validationMessage.textContent = '✗ Invalid API key. Please check and try again.';
+                    saveBtn.disabled = true;
+                }
+            } catch (error) {
+                validationMessage.className = 'validation-message error';
+                validationMessage.textContent = '✗ Error validating key. Please check your connection and try again.';
+                saveBtn.disabled = true;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = 'Test Key';
+            }
+        });
+        
+        document.getElementById('saveBtn').addEventListener('click', async () => {
+            const apiKey = apiKeyInput.value.trim();
+            
             if (apiKey) {
-                localStorage.setItem('openrouter_api_key', apiKey);
-                this.showNotification('API key saved successfully!', 'success');
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Validating...';
+                validationMessage.style.display = 'block';
+                validationMessage.className = 'validation-message loading';
+                validationMessage.textContent = 'Validating API key...';
+                
+                try {
+                    const isValid = await this.validateApiKey(apiKey);
+                    if (isValid) {
+                        localStorage.setItem('openrouter_api_key', apiKey);
+                        this.showNotification('API key saved successfully!', 'success');
+                        document.body.removeChild(modal);
+                        document.head.removeChild(style);
+                    } else {
+                        validationMessage.className = 'validation-message error';
+                        validationMessage.textContent = '✗ Invalid API key. Please check and try again.';
+                        saveBtn.disabled = false;
+                        saveBtn.textContent = 'Save & Continue';
+                    }
+                } catch (error) {
+                    validationMessage.className = 'validation-message error';
+                    validationMessage.textContent = '✗ Error validating key. Please check your connection and try again.';
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Save & Continue';
+                }
             } else {
                 localStorage.removeItem('openrouter_api_key');
                 this.showNotification('API key removed.', 'warning');
+                document.body.removeChild(modal);
+                document.head.removeChild(style);
             }
-            document.body.removeChild(modal);
-            document.head.removeChild(style);
         });
         
         const removeBtn = document.getElementById('removeKeyBtn');
@@ -426,6 +520,24 @@ class CodeExplainerApp {
             document.body.removeChild(modal);
             document.head.removeChild(style);
         });
+    }
+
+    async validateApiKey(apiKey) {
+        try {
+            const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                    'HTTP-Referer': window.location.origin,
+                    'X-Title': 'Code Explainer AI'
+                }
+            });
+            return response.ok;
+        } catch (error) {
+            console.error('API key validation error:', error);
+            return false;
+        }
     }
 
     displayResults(results) {
