@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Code Explainer AI
 
 A modern, futuristic web application for AI-powered code analysis featuring glassmorphism effects, 3D animations, and real-time code intelligence.
