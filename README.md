@@ -7,9 +7,9 @@ A modern, futuristic web application for AI-powered code analysis featuring glas
 ![License](https://img.shields.io/badge/License-MIT-yellow)
 
 Check it out:https://code-explainer-five.vercel.app/
-## ✨ Features
+##  Features
 
-### 🎨 **Futuristic Design**
+###  **Futuristic Design**
 - **Dark Theme** with striking aqua blue (#00ffff) highlights
 - **Glassmorphism Effects** with backdrop blur on all components
 - **3D Transformations** with depth and perspective on hover
@@ -17,7 +17,7 @@ Check it out:https://code-explainer-five.vercel.app/
 - **Matrix-Style Text** with animated gradient effects
 - **Smooth Animations** and micro-interactions throughout
 
-### 🤖 **AI-Powered Analysis**
+###  **AI-Powered Analysis**
 - **Real AI Analysis** using OpenRouter API with GPT-4
 - **Multi-Language Support** (Python, JavaScript, Java, C++, C#, Go, Rust)
 - **Intelligent Code Explanation** with detailed breakdowns
@@ -25,14 +25,14 @@ Check it out:https://code-explainer-five.vercel.app/
 - **Optimization Suggestions** for better performance
 - **Fallback Mode** with demo analysis if no API key
 
-### 🎮 **Interactive Experience**
+###  **Interactive Experience**
 - **Theme Toggle** between dark and light modes
 - **Keyboard Shortcuts** for power users
 - **Responsive Design** that works on all devices
 - **Real-time Counters** for lines and characters
 - **Code Formatting** and clearing tools
 
-## 🚀 Quick Start
+##  Quick Start
 
 ### **Option 1: Direct File Opening**
 1. Download the project files
