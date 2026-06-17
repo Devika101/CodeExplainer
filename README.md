@@ -55,7 +55,7 @@ Then visit: `http://localhost:8000`
 
 
 
-## 🛠️ Technologies Used
+##  Technologies Used
 
 - **Frontend**: HTML5, CSS3, JavaScript (ES6+)
 - **Styling**: Custom CSS with CSS Variables, Flexbox, Grid
